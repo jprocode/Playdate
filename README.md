@@ -1,109 +1,220 @@
-# Playdate
+# PlayDate 🎮
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+**Video call your friend and play games together on the same screen.**
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+PlayDate is a real-time 1-on-1 video calling web app with integrated multiplayer games. Create a private room, invite a friend, and play 10+ games while video chatting.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+## Features
 
-## Generate a library
+- 🎥 **HD Video Calling** - WebRTC-based peer-to-peer video calls with screen sharing
+- 🎮 **10+ Games** - From classics like Chess and Tic-Tac-Toe to word games like Wordle
+- 💬 **Real-time Chat** - In-room chat with emoji reactions
+- 🔒 **Private Rooms** - Password-protected rooms with rate limiting
+- 📱 **Mobile-First** - Responsive design that works on all devices
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
-```
+## Tech Stack
 
-## Run tasks
+- **Frontend**: Next.js 14+ (App Router), Tailwind CSS, shadcn/ui
+- **Backend**: Node.js, Express, Socket.IO
+- **Database**: PostgreSQL (Prisma ORM)
+- **Video**: WebRTC with Cloudflare TURN
+- **Monorepo**: Nx with npm workspaces
+- **Testing**: Vitest
 
-To build the library use:
-
-```sh
-npx nx build pkg1
-```
-
-To run any task with Nx use:
-
-```sh
-npx nx <target> <project-name>
-```
-
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
-
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Versioning and releasing
-
-To version and release the library use
+## Project Structure
 
 ```
-npx nx release
+playdate/
+├── apps/
+│   ├── web/           # Next.js frontend
+│   └── server/        # Express + Socket.IO backend
+├── packages/
+│   ├── shared/        # Shared types, schemas, constants
+│   └── game-core/     # Game logic engines
+├── .github/workflows/ # CI/CD
+└── docker-compose.yml # Local development
 ```
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+## Games
 
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+| Game | Type | Description |
+|------|------|-------------|
+| Tic Tac Toe | Classic | 3x3 grid, get three in a row |
+| Connect 4 | Classic | Drop discs, connect four in a row |
+| Chess | Classic | Full chess with chess.js |
+| Trivia | Quiz | Race to answer 10 questions first |
+| Speed Wordle | Word | Same word, race to solve first |
+| Connections | Word | Find 4 groups of 4 related items |
+| Hangman | Word | Guess the word letter by letter |
+| 20 Questions | Quiz | Ask yes/no questions to guess the object |
+| Pictionary | Drawing | Draw and guess |
+| Co-op Crossword | Word | Solve the puzzle together |
 
-## Keep TypeScript project references up to date
+## Getting Started
 
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
+### Prerequisites
 
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
+- Node.js 20+
+- npm 9+
+- Docker (optional, for database)
 
-```sh
-npx nx sync
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd playdate
+
+# Install dependencies
+npm install
+
+# Build shared packages
+npm run build
 ```
 
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
+### Database Setup
 
-```sh
-npx nx sync:check
+**Option 1: Docker (Recommended)**
+```bash
+# Start PostgreSQL
+docker-compose up -d postgres
+
+# Run migrations
+cd apps/server
+npm run db:push
 ```
 
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
+**Option 2: Local PostgreSQL**
+```bash
+# Set DATABASE_URL in apps/server/.env
+DATABASE_URL=postgresql://user:password@localhost:5432/playdate
 
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+# Run migrations
+cd apps/server
+npm run db:push
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+### Environment Variables
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
+**apps/server/.env**
+```env
+NODE_ENV=development
+PORT=3001
+DATABASE_URL=postgresql://playdate:playdate_dev_password@localhost:5432/playdate
+CORS_ORIGIN=http://localhost:3000
+TURN_SECRET=your-turn-secret
+TURN_URLS=turn:your-turn-server:3478
 ```
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+**apps/web/.env.local**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
 
-## Install Nx Console
+### Running Development
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+```bash
+# Start the backend (from root)
+npm run dev:server
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+# Start the frontend (in another terminal)
+npm run dev:web
+```
 
-## Useful links
+Visit `http://localhost:3000` to access the app.
 
-Learn more:
+## Development Commands
 
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+```bash
+# Build all packages
+npm run build
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+# Run tests
+npm run test
+
+# Lint code
+npm run lint
+
+# Type check
+npm run typecheck
+
+# Format code
+npm run format
+```
+
+## Architecture
+
+### Socket.IO Events
+
+| Event | Direction | Description |
+|-------|-----------|-------------|
+| `room:create` | Client → Server | Create a new room |
+| `room:join` | Client → Server | Join existing room |
+| `room:ready` | Server → Client | Both participants connected |
+| `chat:send` | Client → Server | Send chat message |
+| `chat:message` | Server → Client | Receive chat message |
+| `game:select` | Client → Server | Select game to play |
+| `game:action` | Client → Server | Send game move |
+| `game:state` | Server → Client | Updated game state |
+| `rtc:offer/answer/ice` | Both | WebRTC signaling |
+
+### Game Architecture
+
+Games are implemented as pure functions in `packages/game-core`:
+
+```typescript
+interface Game<TState, TAction, TView> {
+  init(seed?: string): TState;
+  validateAction(state: TState, role: PlayerRole, action: TAction): ValidationResult;
+  applyAction(state: TState, role: PlayerRole, action: TAction): TState;
+  getView(state: TState, role: PlayerRole): TView;
+  checkWinCondition(state: TState): WinResult | null;
+}
+```
+
+The server acts as the authoritative state holder - clients send actions, server validates and broadcasts the new state.
+
+## Deployment
+
+### Frontend (Vercel)
+
+1. Connect your repository to Vercel
+2. Set `NEXT_PUBLIC_API_URL` to your backend URL
+3. Deploy
+
+### Backend (Oracle Free Tier / Any VPS)
+
+```bash
+# Build the server
+cd apps/server
+npm run build
+
+# Run with PM2 or systemd
+pm2 start dist/index.js --name playdate-server
+```
+
+### Database (Neon Free Tier)
+
+1. Create a project at neon.tech
+2. Copy the connection string
+3. Set `DATABASE_URL` in your backend
+
+## Security
+
+- Passwords hashed with Argon2
+- Rate limiting on room join (5 attempts, 15-min lockout)
+- Strict 2-participant room limit
+- Short-lived TURN credentials
+- No persistent user data by default
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+## License
+
+MIT

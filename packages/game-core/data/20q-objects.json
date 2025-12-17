@@ -1,0 +1,155 @@
+{
+  "objects": [
+    {
+      "id": "1",
+      "name": "Elephant",
+      "category": "animal",
+      "hints": ["It is alive", "It is very large", "It has a trunk", "It lives in Africa or Asia"]
+    },
+    {
+      "id": "2",
+      "name": "Piano",
+      "category": "instrument",
+      "hints": ["It makes sound", "It has keys", "It is usually large", "It is found in concert halls"]
+    },
+    {
+      "id": "3",
+      "name": "Banana",
+      "category": "food",
+      "hints": ["It is edible", "It is yellow", "It grows on trees", "Monkeys love it"]
+    },
+    {
+      "id": "4",
+      "name": "Airplane",
+      "category": "vehicle",
+      "hints": ["It is man-made", "It can fly", "People travel in it", "It has wings"]
+    },
+    {
+      "id": "5",
+      "name": "Pizza",
+      "category": "food",
+      "hints": ["It is edible", "It is round", "It originated in Italy", "It has cheese and toppings"]
+    },
+    {
+      "id": "6",
+      "name": "Bicycle",
+      "category": "vehicle",
+      "hints": ["It is man-made", "It has two wheels", "You pedal it", "It is eco-friendly"]
+    },
+    {
+      "id": "7",
+      "name": "Sun",
+      "category": "celestial",
+      "hints": ["It is not on Earth", "It gives light", "It is very hot", "Earth orbits around it"]
+    },
+    {
+      "id": "8",
+      "name": "Guitar",
+      "category": "instrument",
+      "hints": ["It makes sound", "It has strings", "You strum it", "Many rock bands use it"]
+    },
+    {
+      "id": "9",
+      "name": "Penguin",
+      "category": "animal",
+      "hints": ["It is alive", "It is a bird", "It cannot fly", "It lives in cold places"]
+    },
+    {
+      "id": "10",
+      "name": "Camera",
+      "category": "electronics",
+      "hints": ["It is man-made", "It captures images", "It has a lens", "You use it to take photos"]
+    },
+    {
+      "id": "11",
+      "name": "Basketball",
+      "category": "sports",
+      "hints": ["It is round", "It bounces", "It is orange", "You throw it through a hoop"]
+    },
+    {
+      "id": "12",
+      "name": "Dolphin",
+      "category": "animal",
+      "hints": ["It is alive", "It lives in water", "It is very intelligent", "It is not a fish"]
+    },
+    {
+      "id": "13",
+      "name": "Umbrella",
+      "category": "object",
+      "hints": ["It is man-made", "It protects from rain", "It can fold", "It has a handle"]
+    },
+    {
+      "id": "14",
+      "name": "Clock",
+      "category": "object",
+      "hints": ["It is man-made", "It shows time", "It has hands or digits", "It can be on a wall"]
+    },
+    {
+      "id": "15",
+      "name": "Volcano",
+      "category": "geography",
+      "hints": ["It is natural", "It is a type of mountain", "It can erupt", "It has lava inside"]
+    },
+    {
+      "id": "16",
+      "name": "Snowman",
+      "category": "object",
+      "hints": ["It is made in winter", "It is white", "It is made of snow", "It often has a carrot nose"]
+    },
+    {
+      "id": "17",
+      "name": "Lighthouse",
+      "category": "building",
+      "hints": ["It is man-made", "It is near the ocean", "It produces light", "It helps ships navigate"]
+    },
+    {
+      "id": "18",
+      "name": "Butterfly",
+      "category": "animal",
+      "hints": ["It is alive", "It can fly", "It starts as a caterpillar", "It has colorful wings"]
+    },
+    {
+      "id": "19",
+      "name": "Television",
+      "category": "electronics",
+      "hints": ["It is man-made", "It has a screen", "You watch shows on it", "It is in most living rooms"]
+    },
+    {
+      "id": "20",
+      "name": "Rainbow",
+      "category": "natural",
+      "hints": ["It is natural", "It has many colors", "It appears after rain", "It is in the sky"]
+    },
+    {
+      "id": "21",
+      "name": "Giraffe",
+      "category": "animal",
+      "hints": ["It is alive", "It is very tall", "It has spots", "It has a long neck"]
+    },
+    {
+      "id": "22",
+      "name": "Microwave",
+      "category": "appliance",
+      "hints": ["It is man-made", "It heats food", "It is in the kitchen", "Food spins inside it"]
+    },
+    {
+      "id": "23",
+      "name": "Skateboard",
+      "category": "sports",
+      "hints": ["It has wheels", "You stand on it", "It is used for tricks", "It is popular with youth"]
+    },
+    {
+      "id": "24",
+      "name": "Moon",
+      "category": "celestial",
+      "hints": ["It is not on Earth", "It orbits Earth", "It is visible at night", "Humans have walked on it"]
+    },
+    {
+      "id": "25",
+      "name": "Hamburger",
+      "category": "food",
+      "hints": ["It is edible", "It has a bun", "It has meat", "It is American fast food"]
+    }
+  ]
+}
+

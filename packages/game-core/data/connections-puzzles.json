@@ -1,0 +1,205 @@
+{
+  "puzzles": [
+    {
+      "id": "1",
+      "groups": [
+        {
+          "category": "Fruits",
+          "difficulty": 1,
+          "words": ["Apple", "Banana", "Orange", "Grape"]
+        },
+        {
+          "category": "Programming Languages",
+          "difficulty": 2,
+          "words": ["Python", "Ruby", "Swift", "Go"]
+        },
+        {
+          "category": "Card Games",
+          "difficulty": 3,
+          "words": ["Poker", "Bridge", "Solitaire", "Blackjack"]
+        },
+        {
+          "category": "Dance Styles",
+          "difficulty": 4,
+          "words": ["Salsa", "Tango", "Waltz", "Foxtrot"]
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "groups": [
+        {
+          "category": "Planets",
+          "difficulty": 1,
+          "words": ["Mars", "Venus", "Jupiter", "Saturn"]
+        },
+        {
+          "category": "Greek Gods",
+          "difficulty": 2,
+          "words": ["Zeus", "Apollo", "Athena", "Poseidon"]
+        },
+        {
+          "category": "Car Brands",
+          "difficulty": 3,
+          "words": ["Ford", "Honda", "Tesla", "Mercedes"]
+        },
+        {
+          "category": "Types of Pasta",
+          "difficulty": 4,
+          "words": ["Penne", "Rigatoni", "Linguine", "Fusilli"]
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "groups": [
+        {
+          "category": "Colors",
+          "difficulty": 1,
+          "words": ["Blue", "Green", "Yellow", "Purple"]
+        },
+        {
+          "category": "Musical Instruments",
+          "difficulty": 2,
+          "words": ["Piano", "Guitar", "Violin", "Trumpet"]
+        },
+        {
+          "category": "Sports",
+          "difficulty": 3,
+          "words": ["Soccer", "Tennis", "Golf", "Hockey"]
+        },
+        {
+          "category": "Chemical Elements",
+          "difficulty": 4,
+          "words": ["Gold", "Silver", "Iron", "Copper"]
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "groups": [
+        {
+          "category": "Countries",
+          "difficulty": 1,
+          "words": ["France", "Italy", "Spain", "Germany"]
+        },
+        {
+          "category": "Animals",
+          "difficulty": 2,
+          "words": ["Lion", "Tiger", "Bear", "Wolf"]
+        },
+        {
+          "category": "Flowers",
+          "difficulty": 3,
+          "words": ["Rose", "Tulip", "Daisy", "Lily"]
+        },
+        {
+          "category": "Board Games",
+          "difficulty": 4,
+          "words": ["Chess", "Monopoly", "Scrabble", "Risk"]
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "groups": [
+        {
+          "category": "Beverages",
+          "difficulty": 1,
+          "words": ["Coffee", "Tea", "Juice", "Milk"]
+        },
+        {
+          "category": "Superheroes",
+          "difficulty": 2,
+          "words": ["Batman", "Superman", "Spiderman", "Ironman"]
+        },
+        {
+          "category": "Currencies",
+          "difficulty": 3,
+          "words": ["Dollar", "Euro", "Pound", "Yen"]
+        },
+        {
+          "category": "____ King (Titles)",
+          "difficulty": 4,
+          "words": ["Burger", "Lion", "Donkey", "Rat"]
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "groups": [
+        {
+          "category": "Seasons",
+          "difficulty": 1,
+          "words": ["Spring", "Summer", "Fall", "Winter"]
+        },
+        {
+          "category": "Body Parts",
+          "difficulty": 2,
+          "words": ["Heart", "Brain", "Liver", "Kidney"]
+        },
+        {
+          "category": "Famous Scientists",
+          "difficulty": 3,
+          "words": ["Einstein", "Newton", "Darwin", "Curie"]
+        },
+        {
+          "category": "Things That Are Round",
+          "difficulty": 4,
+          "words": ["Moon", "Pizza", "Wheel", "Clock"]
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "groups": [
+        {
+          "category": "Days of the Week",
+          "difficulty": 1,
+          "words": ["Monday", "Tuesday", "Friday", "Sunday"]
+        },
+        {
+          "category": "Harry Potter Houses",
+          "difficulty": 2,
+          "words": ["Gryffindor", "Slytherin", "Hufflepuff", "Ravenclaw"]
+        },
+        {
+          "category": "Types of Weather",
+          "difficulty": 3,
+          "words": ["Sunny", "Rainy", "Cloudy", "Windy"]
+        },
+        {
+          "category": "Famous Painters",
+          "difficulty": 4,
+          "words": ["Picasso", "Monet", "Rembrandt", "Warhol"]
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "groups": [
+        {
+          "category": "Vegetables",
+          "difficulty": 1,
+          "words": ["Carrot", "Broccoli", "Spinach", "Potato"]
+        },
+        {
+          "category": "Social Media Platforms",
+          "difficulty": 2,
+          "words": ["Twitter", "Instagram", "TikTok", "LinkedIn"]
+        },
+        {
+          "category": "Fairy Tale Characters",
+          "difficulty": 3,
+          "words": ["Cinderella", "Rapunzel", "Aladdin", "Pinocchio"]
+        },
+        {
+          "category": "Things You Blow",
+          "difficulty": 4,
+          "words": ["Candle", "Balloon", "Whistle", "Nose"]
+        }
+      ]
+    }
+  ]
+}
+
