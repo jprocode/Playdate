@@ -1,0 +1,51 @@
+# PlayDate Docker Compose
+# Local development environment
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: playdate-postgres
+    environment:
+      POSTGRES_USER: playdate
+      POSTGRES_PASSWORD: playdate_dev_password
+      POSTGRES_DB: playdate
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U playdate -d playdate']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Server (for development, usually run with npm run dev:server instead)
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    container_name: playdate-server
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://playdate:playdate_dev_password@postgres:5432/playdate?schema=public
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - '3001:3001'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles:
+      - full
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  default:
+    name: playdate-network
+

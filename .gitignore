@@ -38,5 +38,29 @@ testem.log
 .DS_Store
 Thumbs.db
 
+# Nx
 .nx/cache
 .nx/workspace-data
+
+# Next.js
+.next
+.vercel
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Prisma
+apps/server/src/db/prisma/*.db
+apps/server/src/db/prisma/*.db-journal
+
+# Testing
+coverage
+*.lcov
+
+# Build
+build

@@ -2,8 +2,28 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
-    "production": ["default"],
+    "production": [
+      "default",
+      "!{projectRoot}/**/*.test.ts",
+      "!{projectRoot}/**/*.spec.ts",
+      "!{projectRoot}/**/test/**/*"
+    ],
     "sharedGlobals": []
+  },
+  "targetDefaults": {
+    "build": {
+      "dependsOn": ["^build"],
+      "cache": true
+    },
+    "test": {
+      "cache": true
+    },
+    "lint": {
+      "cache": true
+    },
+    "typecheck": {
+      "cache": true
+    }
   },
   "plugins": [
     {
@@ -14,7 +34,7 @@
         },
         "build": {
           "targetName": "build",
-          "configName": "tsconfig.lib.json",
+          "configName": "tsconfig.json",
           "buildDepsName": "build-deps",
           "watchDepsName": "watch-deps"
         }

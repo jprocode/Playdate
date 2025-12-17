@@ -1,0 +1,44 @@
+// Error codes for the application
+
+export const ErrorCodes = {
+  // Room errors
+  ROOM_NOT_FOUND: 'ROOM_NOT_FOUND',
+  ROOM_FULL: 'ROOM_FULL',
+  ROOM_CLOSED: 'ROOM_CLOSED',
+  ROOM_PASSWORD_INVALID: 'ROOM_PASSWORD_INVALID',
+  ROOM_LOCKED: 'ROOM_LOCKED',
+  ROOM_CREATE_FAILED: 'ROOM_CREATE_FAILED',
+
+  // Auth errors
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  RATE_LIMITED: 'RATE_LIMITED',
+
+  // Game errors
+  GAME_NOT_FOUND: 'GAME_NOT_FOUND',
+  GAME_INVALID_ACTION: 'GAME_INVALID_ACTION',
+  GAME_NOT_YOUR_TURN: 'GAME_NOT_YOUR_TURN',
+  GAME_ALREADY_FINISHED: 'GAME_ALREADY_FINISHED',
+  GAME_NOT_STARTED: 'GAME_NOT_STARTED',
+
+  // WebRTC errors
+  RTC_PEER_NOT_FOUND: 'RTC_PEER_NOT_FOUND',
+  RTC_SIGNALING_FAILED: 'RTC_SIGNALING_FAILED',
+
+  // Chat errors
+  CHAT_MESSAGE_TOO_LONG: 'CHAT_MESSAGE_TOO_LONG',
+  CHAT_RATE_LIMITED: 'CHAT_RATE_LIMITED',
+
+  // General errors
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  NOT_CONNECTED: 'NOT_CONNECTED',
+} as const;
+
+export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
+
+export interface AppError {
+  code: ErrorCode;
+  message: string;
+  details?: Record<string, unknown>;
+}
