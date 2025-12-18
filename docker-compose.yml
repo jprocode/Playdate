@@ -1,8 +1,6 @@
 # PlayDate Docker Compose
 # Local development environment
 
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:

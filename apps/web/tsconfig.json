@@ -26,11 +26,7 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@playdate/shared": ["../../packages/shared/src/index.ts"],
-      "@playdate/shared/*": ["../../packages/shared/src/*"],
-      "@playdate/game-core": ["../../packages/game-core/src/index.ts"],
-      "@playdate/game-core/*": ["../../packages/game-core/src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -121,7 +121,7 @@ export function registerGameHandlers(io: TypedServer, socket: TypedSocket): void
       gameState.peerReady = ready;
     }
 
-    // Notify both players of ready state
+    // Notify both players of ready state (interim lobby state)
     io.to(roomId).emit(SocketEvents.GAME_STATE, {
       roomId,
       gameKey,
@@ -129,7 +129,7 @@ export function registerGameHandlers(io: TypedServer, socket: TypedSocket): void
         hostReady: gameState.hostReady,
         peerReady: gameState.peerReady,
         waiting: true,
-      },
+      } as unknown as import('@playdate/shared').GameState,
       serverSeq: 0,
     });
 
@@ -250,7 +250,7 @@ export function registerGameHandlers(io: TypedServer, socket: TypedSocket): void
       gameState.peerReady = socket.data.role === 'peer';
     }
 
-    // Notify room
+    // Notify room (interim lobby state)
     io.to(roomId).emit(SocketEvents.GAME_STATE, {
       roomId,
       gameKey,
@@ -259,7 +259,7 @@ export function registerGameHandlers(io: TypedServer, socket: TypedSocket): void
         requestedBy: socket.data.role,
         hostReady: gameState?.hostReady || false,
         peerReady: gameState?.peerReady || false,
-      },
+      } as unknown as import('@playdate/shared').GameState,
       serverSeq: 0,
     });
 

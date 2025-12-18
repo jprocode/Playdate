@@ -48,8 +48,6 @@ export const rooms = new Map<string, InMemoryRoom>();
 
 // Generate a URL-safe room ID using NanoID
 function generateRoomId(): string {
-  // Use custom alphabet without ambiguous characters
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
   return nanoid(10);
 }
 

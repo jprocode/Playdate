@@ -54,74 +54,210 @@ playdate/
 
 ### Prerequisites
 
-- Node.js 20+
-- npm 9+
-- Docker (optional, for database)
+Before starting, ensure you have:
+- **Node.js 20+** - Check with `node --version`
+- **npm 9+** - Check with `npm --version`
+- **Docker Desktop** - Required for local PostgreSQL database
 
-### Installation
+### Step-by-Step Setup
+
+#### Step 1: Install Dependencies
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd playdate
+# Navigate to project directory
+cd /path/to/Playdate
 
-# Install dependencies
+# Install all dependencies (root + all workspaces)
 npm install
+```
 
-# Build shared packages
+#### Step 2: Build Shared Packages
+
+```bash
+# Build shared TypeScript packages
 npm run build
 ```
 
-### Database Setup
+Expected output: All packages should build successfully without errors.
 
-**Option 1: Docker (Recommended)**
+#### Step 3: Set Up Environment Variables
+
+Create the following environment files:
+
+**Create `apps/server/.env`:**
 ```bash
-# Start PostgreSQL
-docker-compose up -d postgres
-
-# Run migrations
-cd apps/server
-npm run db:push
-```
-
-**Option 2: Local PostgreSQL**
-```bash
-# Set DATABASE_URL in apps/server/.env
-DATABASE_URL=postgresql://user:password@localhost:5432/playdate
-
-# Run migrations
-cd apps/server
-npm run db:push
-```
-
-### Environment Variables
-
-**apps/server/.env**
-```env
+cat > apps/server/.env << 'EOF'
 NODE_ENV=development
 PORT=3001
 DATABASE_URL=postgresql://playdate:playdate_dev_password@localhost:5432/playdate
 CORS_ORIGIN=http://localhost:3000
-TURN_SECRET=your-turn-secret
-TURN_URLS=turn:your-turn-server:3478
+TURN_SECRET=
+TURN_URLS=stun:stun.cloudflare.com:3478
+EOF
 ```
 
-**apps/web/.env.local**
-```env
+**Create `apps/web/.env.local`:**
+```bash
+cat > apps/web/.env.local << 'EOF'
 NEXT_PUBLIC_API_URL=http://localhost:3001
+EOF
 ```
 
-### Running Development
+#### Step 4: Start Docker Desktop
+
+1. Open **Docker Desktop** application on your Mac
+2. Wait for Docker to fully start (whale icon appears in menu bar)
+3. Verify Docker is running: `docker ps` should work without errors
+
+#### Step 5: Start PostgreSQL Database
 
 ```bash
-# Start the backend (from root)
-npm run dev:server
+# Start PostgreSQL container
+docker-compose up -d postgres
+```
 
-# Start the frontend (in another terminal)
+Expected output:
+```
+✔ Container playdate-postgres Running
+```
+
+**Verify database is running:**
+```bash
+docker-compose ps
+```
+
+You should see `playdate-postgres` with status "Up".
+
+#### Step 6: Set Up Database Schema
+
+```bash
+# Navigate to server directory
+cd apps/server
+
+# Push database schema (creates tables)
+npm run db:push
+
+# Return to root directory
+cd ../..
+```
+
+Expected output: Prisma should successfully push the schema and create all tables.
+
+#### Step 7: Start the Backend Server
+
+**Open Terminal 1:**
+
+```bash
+# From project root directory
+cd /path/to/Playdate
+
+# Start backend server
+npm run dev:server
+```
+
+**Expected output:**
+```
+PlayDate server started
+port: 3001
+Socket.IO handlers registered
+```
+
+✅ **Keep this terminal open** - The server must stay running.
+
+#### Step 8: Start the Frontend Server
+
+**Open Terminal 2 (new terminal window):**
+
+```bash
+# From project root directory
+cd /path/to/Playdate
+
+# Start frontend server
 npm run dev:web
 ```
 
-Visit `http://localhost:3000` to access the app.
+**Expected output:**
+```
+▲ Next.js 14.2.35
+- Local: http://localhost:3000
+✓ Ready in Xms
+```
+
+✅ **Keep this terminal open** - The frontend must stay running.
+
+#### Step 9: Open the Application
+
+1. Open your web browser
+2. Navigate to: **http://localhost:3000**
+3. You should see the PlayDate homepage
+
+### Testing the Application
+
+#### Create a Room:
+1. Click **"Create Room"** button
+2. Enter a display name (e.g., "Alice")
+3. Copy the **Room ID** and **Password** shown on screen
+
+#### Join the Room:
+1. Open a **new incognito/private window** (or different browser)
+2. Navigate to **http://localhost:3000/join**
+3. Enter the Room ID and Password you copied
+4. Enter a display name (e.g., "Bob")
+5. Click **"Join Room"**
+
+#### Once Both Are Connected:
+- ✅ Video call should work (allow camera/mic permissions when prompted)
+- ✅ Chat messages should appear in real-time
+- ✅ Games can be selected from the game launcher
+- ✅ Both players can interact with games simultaneously
+
+### Stopping the Application
+
+**To stop servers:**
+- Press `Ctrl+C` in each terminal (Terminal 1 and Terminal 2)
+
+**To stop database:**
+```bash
+docker-compose down
+```
+
+**To stop Docker Desktop:**
+- Quit Docker Desktop from the menu bar (optional - only when not developing)
+
+### Troubleshooting
+
+**Port already in use:**
+```bash
+# Check what's using the ports
+lsof -i :3000  # Frontend
+lsof -i :3001  # Backend
+
+# Kill processes if needed
+lsof -ti :3000 | xargs kill -9
+lsof -ti :3001 | xargs kill -9
+```
+
+**Database connection errors:**
+```bash
+# Check if PostgreSQL container is running
+docker-compose ps
+
+# View database logs
+docker-compose logs postgres
+
+# Restart database
+docker-compose restart postgres
+```
+
+**Module not found errors:**
+```bash
+# Rebuild packages
+npm run build
+```
+
+**Docker not running:**
+- Make sure Docker Desktop is open and running
+- Check Docker status: `docker ps`
 
 ## Development Commands
 

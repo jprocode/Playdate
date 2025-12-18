@@ -5,7 +5,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 
-import type { RTCOfferPayload, RTCAnswerPayload, RTCIcePayload } from '@playdate/shared';
+import type { RTCOfferPayload, RTCAnswerPayload, RTCIcePayload, RTCNegotiatePayload } from '@playdate/shared';
 
 import { getSocket } from '@/lib/socket-client';
 
@@ -25,7 +25,7 @@ interface UseWebRTCOptions {
 interface UseWebRTCReturn {
   localStream: MediaStream | null;
   remoteStream: MediaStream | null;
-  connectionState: RTCPeerConnectionState | 'new';
+  connectionState: RTCPeerConnectionState | 'new' | 'initializing';
   isVideoEnabled: boolean;
   isAudioEnabled: boolean;
   isScreenSharing: boolean;
@@ -93,7 +93,7 @@ export function useWebRTC({
 }: UseWebRTCOptions): UseWebRTCReturn {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  const [connectionState, setConnectionState] = useState<RTCPeerConnectionState | 'new'>('new');
+  const [connectionState, setConnectionState] = useState<RTCPeerConnectionState | 'new' | 'initializing'>('new');
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -102,12 +102,13 @@ export function useWebRTC({
   const localStreamRef = useRef<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
   const pendingCandidatesRef = useRef<RTCIceCandidate[]>([]);
-  const makingOfferRef = useRef(false);
-  const ignoreOfferRef = useRef(false);
+  const isReadyRef = useRef(false);
+  const hasStartedRef = useRef(false);
 
   // Get user media
   const getUserMedia = useCallback(async (): Promise<MediaStream | null> => {
     try {
+      console.log('[WebRTC] Requesting user media...');
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
@@ -120,134 +121,253 @@ export function useWebRTC({
           autoGainControl: true,
         },
       });
+      console.log('[WebRTC] Got user media stream');
       localStreamRef.current = stream;
       setLocalStream(stream);
       return stream;
     } catch (error) {
-      console.error('Failed to get user media:', error);
+      console.error('[WebRTC] Failed to get user media:', error);
       // Try audio only
       try {
+        console.log('[WebRTC] Trying audio only...');
         const audioStream = await navigator.mediaDevices.getUserMedia({
           video: false,
           audio: true,
         });
+        console.log('[WebRTC] Got audio-only stream');
         localStreamRef.current = audioStream;
         setLocalStream(audioStream);
         setIsVideoEnabled(false);
         return audioStream;
       } catch (audioError) {
-        console.error('Failed to get audio:', audioError);
+        console.error('[WebRTC] Failed to get audio:', audioError);
         return null;
       }
     }
   }, []);
 
-  // Create peer connection
+  // Create peer connection (without automatic negotiation)
   const createPeerConnection = useCallback(async (): Promise<RTCPeerConnection | null> => {
     try {
+      console.log('[WebRTC] Fetching TURN credentials...');
       const creds = await fetchTurnCredentials();
       const iceServers = buildIceServers(creds);
+      console.log('[WebRTC] ICE servers configured:', iceServers.map(s => s.urls));
 
       const config: RTCConfiguration = {
         iceServers,
         iceCandidatePoolSize: 10,
       };
 
+      console.log('[WebRTC] Creating RTCPeerConnection...');
       const pc = new RTCPeerConnection(config);
       peerConnectionRef.current = pc;
 
       // Handle connection state changes
       pc.onconnectionstatechange = () => {
+        console.log('[WebRTC] Connection state:', pc.connectionState);
         setConnectionState(pc.connectionState);
-        console.log('Connection state:', pc.connectionState);
+        
+        // Handle failed connection - could implement retry logic here
+        if (pc.connectionState === 'failed') {
+          console.error('[WebRTC] Connection failed');
+        }
       };
 
       // Handle ICE connection state
       pc.oniceconnectionstatechange = () => {
-        console.log('ICE connection state:', pc.iceConnectionState);
+        console.log('[WebRTC] ICE connection state:', pc.iceConnectionState);
+        
+        // Handle ICE failure
+        if (pc.iceConnectionState === 'failed') {
+          console.log('[WebRTC] ICE failed, attempting restart...');
+          pc.restartIce();
+        }
+      };
+
+      // Handle ICE gathering state
+      pc.onicegatheringstatechange = () => {
+        console.log('[WebRTC] ICE gathering state:', pc.iceGatheringState);
+      };
+
+      // Handle signaling state changes
+      pc.onsignalingstatechange = () => {
+        console.log('[WebRTC] Signaling state:', pc.signalingState);
       };
 
       // Handle ICE candidates
       pc.onicecandidate = (event) => {
         if (event.candidate) {
+          console.log('[WebRTC] Sending ICE candidate');
           const socket = getSocket();
           socket.emit('rtc:ice', {
             roomId,
             candidate: event.candidate.toJSON(),
           });
+        } else {
+          console.log('[WebRTC] ICE gathering complete');
         }
       };
 
       // Handle remote tracks
       pc.ontrack = (event) => {
-        console.log('Received remote track:', event.track.kind);
-        const [stream] = event.streams;
-        if (stream) {
-          setRemoteStream(stream);
+        console.log('[WebRTC] Received remote track:', event.track.kind, 'readyState:', event.track.readyState);
+        
+        if (event.streams && event.streams.length > 0) {
+          const stream = event.streams[0];
+          
+          // Log stream info
+          console.log('[WebRTC] Stream tracks:', stream.getTracks().map(t => `${t.kind}: ${t.readyState}`));
+          
+          // Validate stream has active tracks
+          const hasActiveTracks = stream.getTracks().some(t => t.readyState === 'live');
+          
+          if (hasActiveTracks) {
+            console.log('[WebRTC] Setting remote stream with active tracks');
+            setRemoteStream(stream);
+            
+            // Handle track ended events to update UI
+            stream.getTracks().forEach(track => {
+              track.onended = () => {
+                console.log(`[WebRTC] Remote ${track.kind} track ended`);
+                // Only clear stream if no tracks are live
+                const activeTracks = stream.getTracks().filter(t => t.readyState === 'live');
+                if (activeTracks.length === 0) {
+                  console.log('[WebRTC] All remote tracks ended, clearing stream');
+                  setRemoteStream(null);
+                }
+              };
+              
+              track.onmute = () => {
+                console.log(`[WebRTC] Remote ${track.kind} track muted`);
+              };
+              
+              track.onunmute = () => {
+                console.log(`[WebRTC] Remote ${track.kind} track unmuted`);
+              };
+            });
+          } else {
+            console.warn('[WebRTC] Stream received but no active tracks');
+          }
+        } else {
+          // No streams in event, create one from the track
+          console.log('[WebRTC] No streams in track event, creating new MediaStream');
+          const track = event.track;
+          if (track.readyState === 'live') {
+            const newStream = new MediaStream([track]);
+            setRemoteStream(prevStream => {
+              if (prevStream) {
+                // Add track to existing stream
+                prevStream.addTrack(track);
+                return prevStream;
+              }
+              return newStream;
+            });
+          }
         }
       };
 
-      // Handle negotiation needed
-      pc.onnegotiationneeded = async () => {
-        if (!isHost) return; // Only host initiates offers
+      // NOTE: We do NOT set onnegotiationneeded here
+      // Negotiation is explicitly triggered via rtc:negotiate event
 
-        try {
-          makingOfferRef.current = true;
-          await pc.setLocalDescription();
-          const socket = getSocket();
-          socket.emit('rtc:offer', {
-            roomId,
-            sdp: pc.localDescription!,
-          });
-        } catch (error) {
-          console.error('Negotiation failed:', error);
-        } finally {
-          makingOfferRef.current = false;
-        }
-      };
-
+      console.log('[WebRTC] Peer connection created successfully');
       return pc;
     } catch (error) {
-      console.error('Failed to create peer connection:', error);
+      console.error('[WebRTC] Failed to create peer connection:', error);
       return null;
     }
-  }, [roomId, isHost]);
+  }, [roomId]);
+
+  // Create and send offer (called by host after rtc:negotiate)
+  const createOffer = useCallback(async () => {
+    const pc = peerConnectionRef.current;
+    if (!pc) {
+      console.error('[WebRTC] No peer connection for creating offer');
+      return;
+    }
+
+    try {
+      console.log('[WebRTC] Creating offer...');
+      const offer = await pc.createOffer();
+      console.log('[WebRTC] Setting local description...');
+      await pc.setLocalDescription(offer);
+
+      const socket = getSocket();
+      console.log('[WebRTC] Sending offer to peer');
+      socket.emit('rtc:offer', {
+        roomId,
+        sdp: pc.localDescription!,
+      });
+    } catch (error) {
+      console.error('[WebRTC] Failed to create offer:', error);
+    }
+  }, [roomId]);
+
+  // Handle rtc:negotiate event
+  const handleNegotiate = useCallback(async (payload: RTCNegotiatePayload) => {
+    if (payload.roomId !== roomId) return;
+
+    console.log('[WebRTC] Received negotiate signal, initiator:', payload.initiator);
+    
+    // Only the host creates the offer
+    if (isHost && payload.initiator === 'host') {
+      console.log('[WebRTC] I am host, creating offer...');
+      await createOffer();
+    } else {
+      console.log('[WebRTC] I am peer, waiting for offer...');
+    }
+  }, [roomId, isHost, createOffer]);
 
   // Handle incoming RTC offer
   const handleOffer = useCallback(async (payload: RTCOfferPayload) => {
     if (payload.roomId !== roomId) return;
 
+    console.log('[WebRTC] Received offer');
     const pc = peerConnectionRef.current;
-    if (!pc) return;
+    if (!pc) {
+      console.error('[WebRTC] No peer connection to handle offer');
+      return;
+    }
 
     try {
-      const offerCollision = makingOfferRef.current || pc.signalingState !== 'stable';
-      ignoreOfferRef.current = isHost && offerCollision;
-
-      if (ignoreOfferRef.current) {
-        console.log('Ignoring offer due to collision');
-        return;
+      // Check signaling state
+      if (pc.signalingState !== 'stable') {
+        console.log('[WebRTC] Signaling state not stable, current:', pc.signalingState);
+        // For the host, ignore offers in non-stable state (we're the offerer)
+        if (isHost) {
+          console.log('[WebRTC] Ignoring offer as host in non-stable state');
+          return;
+        }
       }
 
+      console.log('[WebRTC] Setting remote description (offer)...');
       await pc.setRemoteDescription(payload.sdp);
 
-      // Add any pending candidates
+      // Add any pending ICE candidates
+      console.log('[WebRTC] Adding', pendingCandidatesRef.current.length, 'pending ICE candidates');
       for (const candidate of pendingCandidatesRef.current) {
-        await pc.addIceCandidate(candidate);
+        try {
+          await pc.addIceCandidate(candidate);
+        } catch (e) {
+          console.warn('[WebRTC] Failed to add pending candidate:', e);
+        }
       }
       pendingCandidatesRef.current = [];
 
       // Create and send answer
+      console.log('[WebRTC] Creating answer...');
       const answer = await pc.createAnswer();
+      console.log('[WebRTC] Setting local description (answer)...');
       await pc.setLocalDescription(answer);
 
       const socket = getSocket();
+      console.log('[WebRTC] Sending answer to peer');
       socket.emit('rtc:answer', {
         roomId,
         sdp: pc.localDescription!,
       });
     } catch (error) {
-      console.error('Failed to handle offer:', error);
+      console.error('[WebRTC] Failed to handle offer:', error);
     }
   }, [roomId, isHost]);
 
@@ -255,19 +375,29 @@ export function useWebRTC({
   const handleAnswer = useCallback(async (payload: RTCAnswerPayload) => {
     if (payload.roomId !== roomId) return;
 
+    console.log('[WebRTC] Received answer');
     const pc = peerConnectionRef.current;
-    if (!pc) return;
+    if (!pc) {
+      console.error('[WebRTC] No peer connection to handle answer');
+      return;
+    }
 
     try {
+      console.log('[WebRTC] Setting remote description (answer)...');
       await pc.setRemoteDescription(payload.sdp);
 
-      // Add any pending candidates
+      // Add any pending ICE candidates
+      console.log('[WebRTC] Adding', pendingCandidatesRef.current.length, 'pending ICE candidates');
       for (const candidate of pendingCandidatesRef.current) {
-        await pc.addIceCandidate(candidate);
+        try {
+          await pc.addIceCandidate(candidate);
+        } catch (e) {
+          console.warn('[WebRTC] Failed to add pending candidate:', e);
+        }
       }
       pendingCandidatesRef.current = [];
     } catch (error) {
-      console.error('Failed to handle answer:', error);
+      console.error('[WebRTC] Failed to handle answer:', error);
     }
   }, [roomId]);
 
@@ -276,17 +406,25 @@ export function useWebRTC({
     if (payload.roomId !== roomId) return;
 
     const pc = peerConnectionRef.current;
-    if (!pc) return;
+    if (!pc) {
+      console.log('[WebRTC] No peer connection, buffering ICE candidate');
+      pendingCandidatesRef.current.push(new RTCIceCandidate(payload.candidate));
+      return;
+    }
 
     try {
       const candidate = new RTCIceCandidate(payload.candidate);
-      if (pc.remoteDescription) {
+      
+      // If remote description is set, add immediately; otherwise buffer
+      if (pc.remoteDescription && pc.remoteDescription.type) {
+        console.log('[WebRTC] Adding ICE candidate immediately');
         await pc.addIceCandidate(candidate);
       } else {
+        console.log('[WebRTC] Buffering ICE candidate (no remote description yet)');
         pendingCandidatesRef.current.push(candidate);
       }
     } catch (error) {
-      console.error('Failed to add ICE candidate:', error);
+      console.error('[WebRTC] Failed to add ICE candidate:', error);
     }
   }, [roomId]);
 
@@ -296,57 +434,67 @@ export function useWebRTC({
 
     const socket = getSocket();
 
+    socket.on('rtc:negotiate', handleNegotiate);
     socket.on('rtc:offer', handleOffer);
     socket.on('rtc:answer', handleAnswer);
     socket.on('rtc:ice', handleIceCandidate);
 
     return () => {
+      socket.off('rtc:negotiate', handleNegotiate);
       socket.off('rtc:offer', handleOffer);
       socket.off('rtc:answer', handleAnswer);
       socket.off('rtc:ice', handleIceCandidate);
     };
-  }, [enabled, handleOffer, handleAnswer, handleIceCandidate]);
+  }, [enabled, handleNegotiate, handleOffer, handleAnswer, handleIceCandidate]);
 
-  // Start call
+  // Start call - get media, create connection, signal ready
   const startCall = useCallback(async () => {
-    // Get local media
+    // Prevent multiple calls
+    if (hasStartedRef.current) {
+      console.log('[WebRTC] Call already started, skipping');
+      return;
+    }
+    hasStartedRef.current = true;
+
+    console.log('[WebRTC] Starting call...');
+    setConnectionState('initializing');
+
+    // Get local media first
     const stream = await getUserMedia();
     if (!stream) {
-      console.error('No local stream available');
+      console.error('[WebRTC] No local stream available');
+      hasStartedRef.current = false;
       return;
     }
 
     // Create peer connection
     const pc = await createPeerConnection();
     if (!pc) {
-      console.error('Failed to create peer connection');
+      console.error('[WebRTC] Failed to create peer connection');
+      hasStartedRef.current = false;
       return;
     }
 
     // Add local tracks to connection
+    console.log('[WebRTC] Adding local tracks to peer connection');
     for (const track of stream.getTracks()) {
       pc.addTrack(track, stream);
     }
 
-    // If host, create and send offer
-    if (isHost) {
-      try {
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+    // Signal ready to server
+    console.log('[WebRTC] Signaling ready to server');
+    const socket = getSocket();
+    socket.emit('rtc:ready', { roomId });
+    isReadyRef.current = true;
 
-        const socket = getSocket();
-        socket.emit('rtc:offer', {
-          roomId,
-          sdp: pc.localDescription!,
-        });
-      } catch (error) {
-        console.error('Failed to create offer:', error);
-      }
-    }
-  }, [getUserMedia, createPeerConnection, isHost, roomId]);
+    // The server will emit rtc:negotiate when both peers are ready
+    // Then the host will create the offer
+  }, [roomId, getUserMedia, createPeerConnection]);
 
   // End call
   const endCall = useCallback(() => {
+    console.log('[WebRTC] Ending call');
+    
     // Stop all local tracks
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => track.stop());
@@ -366,9 +514,13 @@ export function useWebRTC({
       peerConnectionRef.current = null;
     }
 
+    // Reset state
     setRemoteStream(null);
     setConnectionState('new');
     setIsScreenSharing(false);
+    isReadyRef.current = false;
+    hasStartedRef.current = false;
+    pendingCandidatesRef.current = [];
   }, []);
 
   // Toggle video
@@ -423,7 +575,7 @@ export function useWebRTC({
         };
       }
     } catch (error) {
-      console.error('Failed to start screen share:', error);
+      console.error('[WebRTC] Failed to start screen share:', error);
     }
   }, []);
 
@@ -472,4 +624,3 @@ export function useWebRTC({
 }
 
 export default useWebRTC;
-

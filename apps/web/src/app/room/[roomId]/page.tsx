@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { Video, VideoOff, Mic, MicOff, Phone, Monitor, MonitorOff, MessageCircle, Gamepad2 } from 'lucide-react';
+import { Video, VideoOff, Mic, MicOff, Phone, Monitor, MonitorOff, MessageCircle, Gamepad2, Share2 } from 'lucide-react';
 
 import type {
   RoomJoinedPayload,
@@ -12,6 +12,7 @@ import type {
   RoomPeerDisconnectedPayload,
   PlayerRole,
   RoomState,
+  GameStartPayload,
 } from '@playdate/shared';
 
 import { Button } from '@/components/ui/button';
@@ -22,6 +23,8 @@ import { useWebRTC } from '@/hooks/useWebRTC';
 import { VideoDock } from '@/components/room/VideoDock';
 import { Chat } from '@/components/room/Chat';
 import { GameLauncher } from '@/components/room/GameLauncher';
+import { GameContainer } from '@/components/games';
+import { ShareDialog } from '@/components/ui/share-dialog';
 import type { GameKey } from '@playdate/shared';
 
 type RoomStatus = 'connecting' | 'waiting' | 'ready' | 'disconnected' | 'closed' | 'error';
@@ -60,11 +63,11 @@ export default function RoomPage() {
 
   const [currentGame, setCurrentGame] = useState<GameKey | null>(null);
 
-  // Initialize WebRTC
+  // Initialize WebRTC - only enable when we have a valid role and status is ready
   const webrtc = useWebRTC({
     roomId,
     isHost: state.role === 'host',
-    enabled: state.status === 'ready',
+    enabled: state.status === 'ready' && state.role !== null,
   });
 
   // Get stored credentials
@@ -184,10 +187,19 @@ export default function RoomPage() {
     toast({ title: `${payload.peerDisplayName} disconnected` });
   }, [toast]);
 
+  // Handle game start event (when host selects a game)
+  const handleGameStart = useCallback((payload: GameStartPayload) => {
+    if (payload.roomId === roomId) {
+      setCurrentGame(payload.gameKey);
+      toast({ title: `Game started: ${payload.gameKey.replace(/-/g, ' ')}` });
+    }
+  }, [roomId, toast]);
+
   // Register socket event listeners
   useSocketEvent('room:ready', handleRoomReady);
   useSocketEvent('room:closed', handleRoomClosed);
   useSocketEvent('room:peer_disconnected', handlePeerDisconnected);
+  useSocketEvent('game:start', handleGameStart);
 
   // Handle leaving the room
   const handleLeave = useCallback(() => {
@@ -250,6 +262,8 @@ export default function RoomPage() {
   }
 
   if (state.status === 'waiting') {
+    const credentials = getCredentials();
+    
     return (
       <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5">
         <Card className="w-full max-w-md">
@@ -273,9 +287,23 @@ export default function RoomPage() {
                 Room: {roomId}
               </p>
             </div>
-            <Button variant="outline" onClick={handleLeave}>
-              Leave Room
-            </Button>
+            <div className="flex gap-2 justify-center">
+              {state.role === 'host' && credentials?.password && (
+                <ShareDialog
+                  roomId={roomId}
+                  password={credentials.password}
+                  trigger={
+                    <Button variant="default">
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share Invite
+                    </Button>
+                  }
+                />
+              )}
+              <Button variant="outline" onClick={handleLeave}>
+                Leave Room
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </main>
@@ -283,6 +311,8 @@ export default function RoomPage() {
   }
 
   // Ready state - full room UI
+  const credentials = getCredentials();
+  
   return (
     <main className="h-screen flex flex-col bg-background">
       {/* Top bar */}
@@ -292,17 +322,20 @@ export default function RoomPage() {
           <span className="text-sm text-muted-foreground">
             Playing with {state.peerDisplayName || 'Partner'}
           </span>
-          {webrtc.connectionState !== 'connected' && webrtc.connectionState !== 'new' && (
-            <span className="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800">
+          {webrtc.connectionState !== 'connected' && webrtc.connectionState !== 'new' && webrtc.connectionState !== 'initializing' && (
+            <span className="text-xs px-2 py-1 rounded bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300">
               {webrtc.connectionState}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" onClick={toggleGameLauncher}>
+          {state.role === 'host' && credentials?.password && (
+            <ShareDialog roomId={roomId} password={credentials.password} />
+          )}
+          <Button variant="ghost" size="icon" onClick={toggleGameLauncher} title="Games">
             <Gamepad2 className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={toggleChat}>
+          <Button variant="ghost" size="icon" onClick={toggleChat} title="Chat">
             <MessageCircle className="h-5 w-5" />
           </Button>
         </div>
@@ -312,17 +345,31 @@ export default function RoomPage() {
       <div className="flex-1 flex overflow-hidden">
         {/* Game area */}
         <div className="flex-1 flex items-center justify-center p-4">
-          <Card className="w-full max-w-2xl aspect-video flex items-center justify-center">
-            <CardContent className="text-center p-8">
-              <Gamepad2 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <p className="text-lg text-muted-foreground">
-                Select a game to start playing!
-              </p>
-              <Button className="mt-4" onClick={toggleGameLauncher}>
-                Choose Game
-              </Button>
-            </CardContent>
-          </Card>
+          {currentGame ? (
+            <Card className="w-full max-w-2xl h-full flex flex-col">
+              <GameContainer
+                roomId={roomId}
+                gameKey={currentGame}
+                myRole={state.role!}
+                onBack={() => {
+                  setCurrentGame(null);
+                  toggleGameLauncher();
+                }}
+              />
+            </Card>
+          ) : (
+            <Card className="w-full max-w-2xl aspect-video flex items-center justify-center">
+              <CardContent className="text-center p-8">
+                <Gamepad2 className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg text-muted-foreground">
+                  Select a game to start playing!
+                </p>
+                <Button className="mt-4" onClick={toggleGameLauncher}>
+                  Choose Game
+                </Button>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Video dock */}

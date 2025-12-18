@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 
-export default function JoinRoomPage() {
+function JoinRoomContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -147,6 +147,18 @@ export default function JoinRoomPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+export default function JoinRoomPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center p-4">
+        <div className="text-muted-foreground">Loading...</div>
+      </main>
+    }>
+      <JoinRoomContent />
+    </Suspense>
   );
 }
 

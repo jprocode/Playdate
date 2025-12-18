@@ -25,7 +25,7 @@ export interface TriviaState extends GameState {
 }
 
 export interface TriviaAction {
-  type: 'answer';
+  type: 'trivia_answer';
   choiceIndex: number;
 }
 
@@ -107,7 +107,7 @@ export const triviaGame: Game<TriviaState, TriviaAction, TriviaView> = {
       return { valid: false, error: 'Game is not in progress' };
     }
 
-    if (action.type !== 'answer') {
+    if (action.type !== 'trivia_answer') {
       return { valid: false, error: 'Invalid action type' };
     }
 

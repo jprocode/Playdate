@@ -50,7 +50,7 @@ export const chessActionSchema = z.object({
 });
 
 export const triviaActionSchema = z.object({
-  type: z.literal('answer'),
+  type: z.literal('trivia_answer'),
   clientSeq: z.number().int().min(0),
   optionIndex: z.number().int().min(0).max(3),
 });
@@ -109,7 +109,7 @@ export const twentyQuestionsAskActionSchema = z.object({
 });
 
 export const twentyQuestionsAnswerActionSchema = z.object({
-  type: z.literal('answer'),
+  type: z.literal('twenty_q_answer'),
   clientSeq: z.number().int().min(0),
   answer: z.enum(['yes', 'no', 'maybe']),
 });

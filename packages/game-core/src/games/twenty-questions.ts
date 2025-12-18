@@ -33,7 +33,7 @@ export interface TwentyQuestionsState extends GameState {
 }
 
 export interface TwentyQuestionsAction {
-  type: 'ask' | 'answer' | 'guess';
+  type: 'ask' | 'twenty_q_answer' | 'guess_object';
   question?: string;
   answer?: 'yes' | 'no' | 'maybe';
   guess?: string;
@@ -122,7 +122,7 @@ export const twentyQuestionsGame: Game<TwentyQuestionsState, TwentyQuestionsActi
       return { valid: true };
     }
 
-    if (action.type === 'answer') {
+    if (action.type === 'twenty_q_answer') {
       if (role !== state.answererRole) {
         return { valid: false, error: 'Only the answerer can answer' };
       }
@@ -135,7 +135,7 @@ export const twentyQuestionsGame: Game<TwentyQuestionsState, TwentyQuestionsActi
       return { valid: true };
     }
 
-    if (action.type === 'guess') {
+    if (action.type === 'guess_object') {
       if (role !== state.guesserRole) {
         return { valid: false, error: 'Only the guesser can make guesses' };
       }
@@ -162,7 +162,7 @@ export const twentyQuestionsGame: Game<TwentyQuestionsState, TwentyQuestionsActi
       };
     }
 
-    if (action.type === 'answer' && action.answer && state.pendingQuestion) {
+    if (action.type === 'twenty_q_answer' && action.answer && state.pendingQuestion) {
       const newQuestion: Question = {
         text: state.pendingQuestion,
         answer: action.answer,
@@ -182,7 +182,7 @@ export const twentyQuestionsGame: Game<TwentyQuestionsState, TwentyQuestionsActi
       };
     }
 
-    if (action.type === 'guess' && action.guess) {
+    if (action.type === 'guess_object' && action.guess) {
       const isCorrect = action.guess.toLowerCase().trim() === 
                        state.targetObject.name.toLowerCase().trim();
       

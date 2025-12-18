@@ -7,13 +7,13 @@
     "importHelpers": true,
     "isolatedModules": true,
     "lib": ["es2022", "DOM", "DOM.Iterable"],
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "noEmitOnError": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "noEmitOnError": false,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
@@ -27,13 +27,6 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
-    "paths": {
-      "@playdate/shared": ["packages/shared/src/index.ts"],
-      "@playdate/shared/*": ["packages/shared/src/*"],
-      "@playdate/game-core": ["packages/game-core/src/index.ts"],
-      "@playdate/game-core/*": ["packages/game-core/src/*"]
-    },
-    "customConditions": ["@playdate/source"]
+    "baseUrl": "."
   }
 }

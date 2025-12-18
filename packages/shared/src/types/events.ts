@@ -33,6 +33,8 @@ export const SocketEvents = {
   REACTION: 'reaction',
 
   // WebRTC signaling events
+  RTC_READY: 'rtc:ready',
+  RTC_NEGOTIATE: 'rtc:negotiate',
   RTC_OFFER: 'rtc:offer',
   RTC_ANSWER: 'rtc:answer',
   RTC_ICE: 'rtc:ice',
@@ -98,6 +100,15 @@ export interface RTCAnswerPayload {
 export interface RTCIcePayload {
   roomId: string;
   candidate: RTCIceCandidateInit;
+}
+
+export interface RTCReadyPayload {
+  roomId: string;
+}
+
+export interface RTCNegotiatePayload {
+  roomId: string;
+  initiator: 'host' | 'peer';
 }
 
 export interface GameSelectPayload {
@@ -213,6 +224,7 @@ export interface ClientToServerEvents {
   [SocketEvents.ROOM_CLOSE]: (payload: RoomClosePayload) => void;
   [SocketEvents.CHAT_SEND]: (payload: ChatSendPayload) => void;
   [SocketEvents.REACTION_SEND]: (payload: ReactionSendPayload) => void;
+  [SocketEvents.RTC_READY]: (payload: RTCReadyPayload) => void;
   [SocketEvents.RTC_OFFER]: (payload: RTCOfferPayload) => void;
   [SocketEvents.RTC_ANSWER]: (payload: RTCAnswerPayload) => void;
   [SocketEvents.RTC_ICE]: (payload: RTCIcePayload) => void;
@@ -233,6 +245,7 @@ export interface ServerToClientEvents {
   [SocketEvents.ROOM_PEER_RECONNECTED]: (payload: RoomPeerReconnectedPayload) => void;
   [SocketEvents.CHAT_MESSAGE]: (payload: ChatMessagePayload) => void;
   [SocketEvents.REACTION]: (payload: ReactionPayload) => void;
+  [SocketEvents.RTC_NEGOTIATE]: (payload: RTCNegotiatePayload) => void;
   [SocketEvents.RTC_OFFER]: (payload: RTCOfferPayload) => void;
   [SocketEvents.RTC_ANSWER]: (payload: RTCAnswerPayload) => void;
   [SocketEvents.RTC_ICE]: (payload: RTCIcePayload) => void;

@@ -99,7 +99,7 @@ export function useSocketEmit() {
     ) => {
       const socket = getSocket();
       if (socket.connected) {
-        // @ts-expect-error - TypeScript doesn't understand the emit typing here
+        // @ts-ignore - TypeScript doesn't understand the emit typing here
         socket.emit(event, ...args);
       } else {
         console.warn(`Socket not connected, cannot emit ${event}`);
